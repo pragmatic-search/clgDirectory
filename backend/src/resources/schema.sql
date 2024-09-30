@@ -1,13 +1,83 @@
 
-# Database connection configuration
-spring.datasource.url=jdbc:mysql://localhost:3306/college_directory
-spring.datasource.username=root
-spring.datasource.password=root
+-- Drop existing tables if they exist
+DROP TABLE IF EXISTS Enrollment;
+DROP TABLE IF EXISTS Course;
+DROP TABLE IF EXISTS AdministratorProfile;
+DROP TABLE IF EXISTS FacultyProfile;
+DROP TABLE IF EXISTS StudentProfile;
+DROP TABLE IF EXISTS Department;
+DROP TABLE IF EXISTS User;
 
-# JPA settings
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
+-- User Table
+CREATE TABLE User (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL,  -- Changed from ENUM to VARCHAR
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(15)
+);
 
-# JWT settings (Optional, add if you use JWT)
-# jwt.secret=your-secret-key
-# jwt.expiration=3600000
+-- Department Table
+CREATE TABLE Department (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT
+);
+
+-- StudentProfile Table
+CREATE TABLE StudentProfile (
+    user_id INT PRIMARY KEY,
+    photo VARCHAR(255),
+    department_id INT NOT NULL,
+    year VARCHAR(50),
+    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE,
+    FOREIGN KEY (department_id) REFERENCES Department(id) ON DELETE CASCADE
+);
+
+-- FacultyProfile Table
+CREATE TABLE FacultyProfile (
+    user_id INT PRIMARY KEY,
+    photo VARCHAR(255),
+    department_id INT NOT NULL,
+    office_hours VARCHAR(255),
+    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE,
+    FOREIGN KEY (department_id) REFERENCES Department(id) ON DELETE CASCADE
+);
+
+-- AdministratorProfile Table
+CREATE TABLE AdministratorProfile (
+    user_id INT PRIMARY KEY,
+    photo VARCHAR(255),
+    department_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE,
+    FOREIGN KEY (department_id) REFERENCES Department(id) ON DELETE CASCADE
+);
+
+-- Course Table
+CREATE TABLE Course (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    department_id INT NOT NULL,
+    faculty_id INT NOT NULL,
+    FOREIGN KEY (department_id) REFERENCES Department(id) ON DELETE CASCADE,
+    FOREIGN KEY (faculty_id) REFERENCES FacultyProfile(user_id) ON DELETE CASCADE
+);
+
+-- Enrollment Table
+CREATE TABLE Enrollment (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    course_id INT NOT NULL,
+    FOREIGN KEY (student_id) REFERENCES StudentProfile(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES Course(id) ON DELETE CASCADE
+);
+
+-- Insert some initial data into Department
+INSERT INTO Department (name, description) VALUES 
+('Computer Science', 'Department of Computer Science'),
+('Mathematics', 'Department of Mathematics'),
+('Physics', 'Department of Physics'),
+('Chemistry', 'Department of Chemistry');
